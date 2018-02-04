@@ -92,7 +92,7 @@ def depthFirstSearch(problem):
     "*** YOUR CODE HERE ***"
     from util import Stack
     fringe = Stack()
-    return Graph_Search_Path(problem, BFS_DFS_UCS_strategy, DFS_append, fringe)
+    return Graph_Search_Path(problem, DFS_append, fringe)
     #util.raiseNotDefined()
 
 def BFS_DFS_UCS_strategy(fringe):
@@ -106,21 +106,21 @@ def breadthFirstSearch(problem):
     "*** YOUR CODE HERE ***"
     from util import Queue
     fringe = Queue()
-    return Graph_Search_Path(problem, BFS_DFS_UCS_strategy, BFS_append, fringe)
+    return Graph_Search_Path(problem, BFS_append, fringe)
 
-def UCS_append(fringe, node, aux):
+def UCS_aStar_append(fringe, node, aux):
     parent = aux[0]
     backwards_cost = aux[1]
-    backwards_cost[node] = node[2] + backwards_cost[parent]
+    forward_cost = aux[2]
+    backwards_cost[node] = node[2] + backwards_cost[parent] + forward_cost
     fringe.push(node, backwards_cost[node])
-#UCS_append.cumulative_cost = util.Counter()
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
     from util import PriorityQueue
     fringe = PriorityQueue()
-    return Graph_Search_Path(problem, BFS_DFS_UCS_strategy, UCS_append, fringe)
+    return Graph_Search_Path(problem, UCS_aStar_append, fringe)
 
 def nullHeuristic(state, problem=None):
     """
@@ -132,9 +132,11 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from util import PriorityQueue
+    fringe = PriorityQueue()
+    return Graph_Search_Path(problem, UCS_aStar_append, fringe, heuristic)
 
-def Graph_Search_Path(problem, strategy, append, fringe):
+def Graph_Search_Path(problem, append, fringe, heuristic=nullHeuristic):
     if problem.isGoalState(problem.getStartState()):
         return []
 
@@ -143,14 +145,15 @@ def Graph_Search_Path(problem, strategy, append, fringe):
     
     backwards_cost = util.Counter()
     backPointers = {problem.getStartState() : None}
-    
+
     for childNode in problem.getSuccessors(problem.getStartState()):
+                forward_cost = heuristic(childNode[0], problem)
                 backPointers[childNode] = problem.getStartState()
-                append(fringe, childNode, ((0,0,0), backwards_cost))
+                append(fringe, childNode, ((0,0,0), backwards_cost, forward_cost))
 
     goalNode = None
     while not fringe.isEmpty():
-        node = strategy(fringe)
+        node = fringe.pop()
         if problem.isGoalState(node[0]):
             goalNode = node
             break
@@ -159,7 +162,8 @@ def Graph_Search_Path(problem, strategy, append, fringe):
             for childNode in problem.getSuccessors(node[0]):
                 if childNode not in backPointers:
                     backPointers[childNode] = node
-                    append(fringe, childNode, (node, backwards_cost))
+                    forward_cost = heuristic(childNode[0], problem)
+                    append(fringe, childNode, (node, backwards_cost, forward_cost))
     path = []
     if(goalNode == None):
         print 'Path Not Found'
