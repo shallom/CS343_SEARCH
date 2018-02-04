@@ -170,7 +170,6 @@ def Graph_Search_Path(problem, append, fringe, heuristic=nullHeuristic):
     else:
         curNode = goalNode
         while backPointers[curNode] != None :
-            print 'prepend:', curNode[1] 
             path.insert(0, curNode[1])
             curNode = backPointers[curNode]
     return path
