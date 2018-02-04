@@ -112,8 +112,8 @@ def UCS_aStar_append(fringe, node, aux):
     parent = aux[0]
     backwards_cost = aux[1]
     forward_cost = aux[2]
-    backwards_cost[node] = node[2] + backwards_cost[parent] + forward_cost
-    fringe.push(node, backwards_cost[node])
+    backwards_cost[node] = node[2] + backwards_cost[parent]
+    fringe.push(node, backwards_cost[node] + forward_cost)
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
@@ -143,13 +143,13 @@ def Graph_Search_Path(problem, append, fringe, heuristic=nullHeuristic):
     visited = []
     visited.append(problem.getStartState())
     
-    backwards_cost = util.Counter()
+    backwards_cost = {problem.getStartState() : 0}
     backPointers = {problem.getStartState() : None}
 
     for childNode in problem.getSuccessors(problem.getStartState()):
-                forward_cost = heuristic(childNode[0], problem)
-                backPointers[childNode] = problem.getStartState()
-                append(fringe, childNode, ((0,0,0), backwards_cost, forward_cost))
+        backPointers[childNode] = problem.getStartState()
+        forward_cost = heuristic(childNode[0], problem)
+        append(fringe, childNode, (problem.getStartState(), backwards_cost, forward_cost))
 
     goalNode = None
     while not fringe.isEmpty():
@@ -170,6 +170,7 @@ def Graph_Search_Path(problem, append, fringe, heuristic=nullHeuristic):
     else:
         curNode = goalNode
         while backPointers[curNode] != None :
+            print 'prepend:', curNode[1] 
             path.insert(0, curNode[1])
             curNode = backPointers[curNode]
     return path
