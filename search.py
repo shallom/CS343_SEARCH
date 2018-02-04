@@ -72,7 +72,7 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-def DFS_append(fringe, node, parent):
+def DFS_append(fringe, node, aux):
     fringe.push(node)
 
 def depthFirstSearch(problem):
@@ -98,7 +98,7 @@ def depthFirstSearch(problem):
 def BFS_DFS_UCS_strategy(fringe):
     return fringe.pop()
 
-def BFS_append(fringe, node, parent):
+def BFS_append(fringe, node, aux):
     fringe.push(node)
 
 def breadthFirstSearch(problem):
@@ -108,10 +108,12 @@ def breadthFirstSearch(problem):
     fringe = Queue()
     return Graph_Search_Path(problem, BFS_DFS_UCS_strategy, BFS_append, fringe)
 
-def UCS_append(fringe, node, parent):
-    UCS_append.cumulative_cost[node] = node[2] + UCS_append.cumulative_cost[parent]
-    fringe.push(node, UCS_append.cumulative_cost[node])
-UCS_append.cumulative_cost = util.Counter()
+def UCS_append(fringe, node, aux):
+    parent = aux[0]
+    backwards_cost = aux[1]
+    backwards_cost[node] = node[2] + backwards_cost[parent]
+    fringe.push(node, backwards_cost[node])
+#UCS_append.cumulative_cost = util.Counter()
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
@@ -133,17 +135,18 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     util.raiseNotDefined()
 
 def Graph_Search_Path(problem, strategy, append, fringe):
-    # only be coordinates
-    #print 'Start of GSP'
+    if problem.isGoalState(problem.getStartState()):
+        return []
+
     visited = []
     visited.append(problem.getStartState())
     
-    if problem.isGoalState(problem.getStartState()):
-        return []
+    backwards_cost = util.Counter()
     backPointers = {problem.getStartState() : None}
+    
     for childNode in problem.getSuccessors(problem.getStartState()):
                 backPointers[childNode] = problem.getStartState()
-                append(fringe, childNode, (0,0,0))
+                append(fringe, childNode, ((0,0,0), backwards_cost))
 
     goalNode = None
     while not fringe.isEmpty():
@@ -156,16 +159,15 @@ def Graph_Search_Path(problem, strategy, append, fringe):
             for childNode in problem.getSuccessors(node[0]):
                 if childNode not in backPointers:
                     backPointers[childNode] = node
-                    append(fringe, childNode, node)
+                    append(fringe, childNode, (node, backwards_cost))
+    path = []
     if(goalNode == None):
         print 'Path Not Found'
-        return
-    path = []
-    path.insert(0, goalNode[1])
-    curNode = backPointers[goalNode]
-    while backPointers[curNode] != None :
-        path.insert(0, curNode[1])
-        curNode = backPointers[curNode]
+    else:
+        curNode = goalNode
+        while backPointers[curNode] != None :
+            path.insert(0, curNode[1])
+            curNode = backPointers[curNode]
     return path
 
 # Abbreviations
