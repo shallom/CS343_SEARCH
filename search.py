@@ -144,34 +144,34 @@ def Graph_Search_Path(problem, append, fringe, heuristic=nullHeuristic):
     visited.append(problem.getStartState())
     
     backwards_cost = {problem.getStartState() : 0}
-    backPointers = {problem.getStartState() : None}
+    pathBackPointers = {problem.getStartState() : None}
 
-    for childNode in problem.getSuccessors(problem.getStartState()):
-        backPointers[childNode] = problem.getStartState()
-        forward_cost = heuristic(childNode[0], problem)
-        append(fringe, childNode, (problem.getStartState(), backwards_cost, forward_cost))
+    for successorTriple in problem.getSuccessors(problem.getStartState()):
+        pathBackPointers[successorTriple] = problem.getStartState()
+        forward_cost = heuristic(successorTriple[0], problem)
+        append(fringe, successorTriple, (problem.getStartState(), backwards_cost, forward_cost))
 
-    goalNode = None
+    goalStateTriple = None
     while not fringe.isEmpty():
-        node = fringe.pop()
-        if problem.isGoalState(node[0]):
-            goalNode = node
+        currentStateTriple = fringe.pop()
+        if problem.isGoalState(currentStateTriple[0]):
+            goalStateTriple = currentStateTriple
             break
-        if node[0] not in visited:
-            visited.append(node[0])
-            for childNode in problem.getSuccessors(node[0]):
-                if childNode not in backPointers:
-                    backPointers[childNode] = node
-                    forward_cost = heuristic(childNode[0], problem)
-                    append(fringe, childNode, (node, backwards_cost, forward_cost))
+        if currentStateTriple[0] not in visited:
+            visited.append(currentStateTriple[0])
+            for successorTriple in problem.getSuccessors(currentStateTriple[0]):
+                if successorTriple not in pathBackPointers:
+                    pathBackPointers[successorTriple] = currentStateTriple
+                    forward_cost = heuristic(successorTriple[0], problem)
+                    append(fringe, successorTriple, (currentStateTriple, backwards_cost, forward_cost))
     path = []
-    if(goalNode == None):
+    if(goalStateTriple == None):
         print 'Path Not Found'
     else:
-        curNode = goalNode
-        while backPointers[curNode] != None :
-            path.insert(0, curNode[1])
-            curNode = backPointers[curNode]
+        currentStateTriple = goalStateTriple
+        while pathBackPointers[currentStateTriple] != None :
+            path.insert(0, currentStateTriple[1])
+            currentStateTriple = pathBackPointers[currentStateTriple]
     return path
 
 # Abbreviations
