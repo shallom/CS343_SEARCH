@@ -369,20 +369,20 @@ def cornersHeuristic(state, problem):
     shortest path from the state to a goal of the problem; i.e.  it should be
     admissible (as well as consistent).
     """
-    corners = state[1] # These are the remaining corner coordinates
+    remaining_corners = state[1] # These are the remaining corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
     import math
-    if(len(corners) == 0) : 
+    if(len(remaining_corners) == 0) : 
         return 0
     lowest_cost = float('inf')
     distances = []
-    for corner in corners :
-    	other_corners = list(other_corner for other_corner in corners if other_corner != corner)
+    for corner in remaining_corners :
         s_x, s_y  = state[0]
         c_x, c_y =  corner
         dist_corner = abs(c_x - s_x) + abs(c_y - s_y)
+        other_corners = list(other_corner for other_corner in remaining_corners if other_corner != corner)
         dist_others = 0
         for other_corner in other_corners:
             oc_x, oc_y = other_corner
@@ -486,7 +486,27 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    import math
+    remaining_food = foodGrid.asList()
+    if(len(remaining_food) == 0) : 
+        return 0
+    lowest_cost = float('inf')
+    distances = []
+    for food in remaining_food :
+        s_x, s_y  = state[0]
+        f_x, f_y =  food
+        dist_food = abs(f_x - s_x) + abs(f_y - s_y)
+        other_remaining_food = list(other_food for other_food in remaining_food if other_food != food)
+        dist_other_food = 0
+        for other_food in other_remaining_food:
+            of_x, of_y = other_food
+            dist_other_food += abs(f_x - of_x) + abs(f_y - of_y)
+        if(len(other_remaining_food) > 0):
+            dist_other_food /= len(other_remaining_food)
+        dist = dist_food + dist_other_food
+        lowest_cost = min(lowest_cost, dist)
+
+    return lowest_cost
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
