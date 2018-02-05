@@ -537,7 +537,36 @@ class ClosestDotSearchAgent(SearchAgent):
         problem = AnyFoodSearchProblem(gameState)
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        path = []
+        visited = []
+        start_state = ((startPosition),'NA')
+        pathBackPointers = {start_state : None}
+        
+        goal_state = startPosition
+        fringe = util.Queue()
+        fringe.push(start_state)
+        while not fringe.isEmpty():
+            state = fringe.pop()
+            if food[state[0][0]][state[0][1]]:
+                goal_state = state
+                break
+            if state[0] not in visited:
+                visited.append(state[0])
+                for direction in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
+                    x,y = state[0]
+                    dx, dy = Actions.directionToVector(direction)
+                    nextx, nexty = int(x + dx), int(y + dy)
+                    if not walls[nextx][nexty]:
+                        next_state = ((nextx, nexty), direction)
+                        pathBackPointers[next_state] = state
+                        fringe.push(next_state)
+
+        state = goal_state
+        while pathBackPointers[state] != None:
+            path.insert(0, state[1])
+            state = pathBackPointers[state]
+
+        return path
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
