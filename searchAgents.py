@@ -369,19 +369,30 @@ def cornersHeuristic(state, problem):
     shortest path from the state to a goal of the problem; i.e.  it should be
     admissible (as well as consistent).
     """
-    corners = problem.corners # These are the corner coordinates
+    corners = state[1] # These are the remaining corner coordinates
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-    manhattanToClosestCorner = float('inf')
+    import math
+    if(len(corners) == 0) : 
+        return 0
+    lowest_cost = float('inf')
+    distances = []
     for corner in corners :
+    	other_corners = list(other_corner for other_corner in corners if other_corner != corner)
         s_x, s_y  = state[0]
         c_x, c_y =  corner
-        import math
-        dist = abs(c_x - s_x) + abs(c_y - s_y)
-        if dist < manhattanToClosestCorner:
-            manhattanToClosestCorner = dist;
-    return manhattanToClosestCorner # Default to trivial solution
+        dist_corner = abs(c_x - s_x) + abs(c_y - s_y)
+        dist_others = 0
+        for other_corner in other_corners:
+            oc_x, oc_y = other_corner
+            dist_others += abs(c_x - oc_x) + abs(c_y - oc_y)
+        if(len(other_corners) > 0):
+            dist_others /= len(other_corners)
+        dist = dist_corner + dist_others
+        lowest_cost = min(lowest_cost, dist)
+
+    return lowest_cost # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
