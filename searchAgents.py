@@ -474,27 +474,27 @@ def pop_closest_food(position, remaining_food):
 
     return (closest_food, distance_to_closest_food)
 
-def check_collisions(start, end, walls):
+def check_wall_collisions(start, end, walls):
     s_x, s_y = start
     f_x, f_y = end
-    last_collision = (0,0)
-    collisions = 0
+    last_collision_loc = (0,0) # need this to avoid counting same wall twice
+    num_collisions = 0
     while s_x != f_x and s_y != f_y:
         if s_x < f_x:
             s_x += 1
         elif s_x > f_x:
             s_x -= 1
-        if walls[s_x][s_y] and last_collision[0] != s_x and last_collision[1] != s_y:
-            collisions += 1
-            last_collision = (s_x, s_y)
+        if walls[s_x][s_y] and last_collision_loc[0] != s_x and last_collision_loc[1] != s_y:
+            num_collisions += 1
+            last_collision_loc = (s_x, s_y)
         if s_y < f_y:
             s_y += 1
         elif s_y > f_y:
             s_y -= 1
-        if walls[s_x][s_y] and last_collision[0] != s_x and last_collision[1] != s_y:
-            collisions += 1
-            last_collision = (s_x, s_y)
-    return collisions
+        if walls[s_x][s_y] and last_collision_loc[0] != s_x and last_collision_loc[1] != s_y:
+            num_collisions += 1
+            last_collision_loc = (s_x, s_y)
+    return num_collisions
 
 def foodHeuristic(state, problem):
     """
@@ -529,24 +529,25 @@ def foodHeuristic(state, problem):
     "*** YOUR CODE HERE ***"
     import math
     remaining_food = foodGrid.asList()
+    
     if(len(remaining_food) == 0) : 
         return 0
-    lowest_cost = float('inf')
     
     closest_food_data = pop_closest_food(position, remaining_food)
     closest_food_position = closest_food_data[0]
     closest_food_distance = closest_food_data[1]
+    closest_food_collisions = check_wall_collisions(state[0], closest_food_position, walls)
 
-    closes_food_collisions = check_collisions(state[0], closest_food_position, walls)
-
-    cumulative_distance_other_food = 0
+    cumulative_cost_other_food = 0
     food_position = closest_food_position
     while(len(remaining_food) > 0):
         food_data = pop_closest_food(food_position, remaining_food)
+        food_collisions = check_wall_collisions(food_position, food_data[0], walls)
+        food_distance = food_data [1]
+        cumulative_cost_other_food += food_distance + food_collisions
         food_position = food_data[0]
-        cumulative_distance_other_food += food_data[1]
 
-    return (closest_food_distance + closes_food_collisions) + cumulative_distance_other_food/2
+    return closest_food_distance + closest_food_collisions + cumulative_cost_other_food/2
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
