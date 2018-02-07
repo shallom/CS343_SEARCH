@@ -381,18 +381,19 @@ def cornersHeuristic(state, problem):
     for corner in remaining_corners :
         s_x, s_y  = state[0]
         c_x, c_y =  corner
-        dist_corner = abs(c_x - s_x) + abs(c_y - s_y)
+        distance_to_corner = abs(c_x - s_x) + abs(c_y - s_y)
         other_corners = list(other_corner for other_corner in remaining_corners if other_corner != corner)
-        dist_others = 0
+        cumulative_distance_to_others = 0
         for other_corner in other_corners:
             oc_x, oc_y = other_corner
-            dist_others += abs(c_x - oc_x) + abs(c_y - oc_y)
+            cumulative_distance_to_others += abs(c_x - oc_x) + abs(c_y - oc_y)
+        distance_to_other_corners_avg = 0
         if(len(other_corners) > 0):
-            dist_others /= len(other_corners)
-        dist = dist_corner + dist_others
-        lowest_cost = min(lowest_cost, dist)
+            distance_to_other_corners_avg = cumulative_distance_to_others / len(other_corners)
+        cost = distance_to_corner + distance_to_other_corners_avg
+        lowest_cost = min(lowest_cost, cost)
 
-    return lowest_cost # Default to trivial solution
+    return lowest_cost
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
