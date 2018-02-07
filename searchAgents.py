@@ -457,6 +457,45 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchFunction = lambda prob: search.aStarSearch(prob, foodHeuristic)
         self.searchType = FoodSearchProblem
 
+def pop_closest_food(position, remaining_food):
+    import math
+    s_x, s_y = position
+    closest_food = (0,0)
+    distance_to_closest_food = float('inf')
+
+    for food in remaining_food:
+        f_x, f_y = food
+        distance_to_food = abs(f_x - s_x) + abs(f_y - s_y)
+        if distance_to_food < distance_to_closest_food:
+            distance_to_closest_food = distance_to_food
+            closest_food = food
+
+    remaining_food.remove(closest_food)
+
+    return (closest_food, distance_to_closest_food)
+
+def check_collisions(start, end, walls):
+    s_x, s_y = start
+    f_x, f_y = end
+    last_collision = (0,0)
+    collisions = 0
+    while s_x != f_x and s_y != f_y:
+        if s_x < f_x:
+            s_x += 1
+        elif s_x > f_x:
+            s_x -= 1
+        if walls[s_x][s_y] and last_collision[0] != s_x and last_collision[1] != s_y:
+            collisions += 1
+            last_collision = (s_x, s_y)
+        if s_y < f_y:
+            s_y += 1
+        elif s_y > f_y:
+            s_y -= 1
+        if walls[s_x][s_y] and last_collision[0] != s_x and last_collision[1] != s_y:
+            collisions += 1
+            last_collision = (s_x, s_y)
+    return collisions
+
 def foodHeuristic(state, problem):
     """
     Your heuristic for the FoodSearchProblem goes here.
@@ -486,28 +525,28 @@ def foodHeuristic(state, problem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
+    walls = problem.walls
     "*** YOUR CODE HERE ***"
     import math
     remaining_food = foodGrid.asList()
     if(len(remaining_food) == 0) : 
         return 0
     lowest_cost = float('inf')
-    distances = []
-    for food in remaining_food :
-        s_x, s_y  = state[0]
-        f_x, f_y =  food
-        dist_food = abs(f_x - s_x) + abs(f_y - s_y)
-        other_remaining_food = list(other_food for other_food in remaining_food if other_food != food)
-        dist_other_food = 0
-        for other_food in other_remaining_food:
-            of_x, of_y = other_food
-            dist_other_food += abs(f_x - of_x) + abs(f_y - of_y)
-        if(len(other_remaining_food) > 0):
-            dist_other_food /= len(other_remaining_food)
-        dist = dist_food + dist_other_food
-        lowest_cost = min(lowest_cost, dist)
+    
+    closest_food_data = pop_closest_food(position, remaining_food)
+    closest_food_position = closest_food_data[0]
+    closest_food_distance = closest_food_data[1]
 
-    return lowest_cost
+    closes_food_collisions = check_collisions(state[0], closest_food_position, walls)
+
+    cumulative_distance_other_food = 0
+    food_position = closest_food_position
+    while(len(remaining_food) > 0):
+        food_data = pop_closest_food(food_position, remaining_food)
+        food_position = food_data[0]
+        cumulative_distance_other_food += food_data[1]
+
+    return (closest_food_distance + closes_food_collisions) + cumulative_distance_other_food/2
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
