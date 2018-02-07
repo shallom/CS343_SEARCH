@@ -474,7 +474,7 @@ def pop_closest_food(position, remaining_food):
 
     return (closest_food, distance_to_closest_food)
 
-def check_wall_collisions(start, end, walls):
+def num_walls_between_points(start, end, walls):
     s_x, s_y = start
     f_x, f_y = end
     last_collision_loc = (0,0) # need this to avoid counting same wall twice
@@ -524,7 +524,7 @@ def foodHeuristic(state, problem):
     Subsequent calls to this heuristic can access
     problem.heuristicInfo['wallCount']
     """
-    position, foodGrid = state
+    current_position, foodGrid = state
     walls = problem.walls
     "*** YOUR CODE HERE ***"
     import math
@@ -533,21 +533,23 @@ def foodHeuristic(state, problem):
     if(len(remaining_food) == 0) : 
         return 0
     
-    closest_food_data = pop_closest_food(position, remaining_food)
+    closest_food_data = pop_closest_food(current_position, remaining_food)
     closest_food_position = closest_food_data[0]
     closest_food_distance = closest_food_data[1]
-    closest_food_collisions = check_wall_collisions(state[0], closest_food_position, walls)
+    closest_food_num_walls = num_walls_between_points(current_position, closest_food_position, walls)
+    closest_food_cost = closest_food_distance + closest_food_num_walls
 
-    cumulative_cost_other_food = 0
-    food_position = closest_food_position
+    other_food_cost = 0
+    current_position = closest_food_position
     while(len(remaining_food) > 0):
-        food_data = pop_closest_food(food_position, remaining_food)
-        food_collisions = check_wall_collisions(food_position, food_data[0], walls)
-        food_distance = food_data [1]
-        cumulative_cost_other_food += food_distance + food_collisions
-        food_position = food_data[0]
+        next_food_data = pop_closest_food(current_position, remaining_food)
+        next_food_position = next_food_data[0]
+        next_food_distance = next_food_data [1]
+        next_food_num_walls = num_walls_between_points(current_position, next_food_position, walls)
+        other_food_cost += next_food_distance + next_food_num_walls
+        current_position = next_food_position
 
-    return closest_food_distance + closest_food_collisions + cumulative_cost_other_food/2
+    return closest_food_cost + other_food_cost/2
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
